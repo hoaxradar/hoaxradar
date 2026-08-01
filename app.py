@@ -81,6 +81,8 @@ def load_model():
     try:
         download_model_if_needed()
         config = AutoConfig.from_pretrained(MODEL_PATH)
+        config.id2label = {0: "HOAX", 1: "FAKTA"}
+        config.label2id = {"HOAX": 0, "FAKTA": 1}
         tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         model = AutoModelForSequenceClassification.from_pretrained(
             MODEL_PATH, 
@@ -111,21 +113,25 @@ def analyze_text(text):
 
         with torch.inference_mode():
             outputs = model(**inputs)
-            probs = F.softmax(outputs.logits, dim=-1).squeeze().tolist()
+            raw_probs = F.softmax(outputs.logits, dim=-1).squeeze()
+            probs = raw_probs.tolist() if raw_probs.ndim > 0 else [raw_probs.item()]
             prediction_idx = torch.argmax(outputs.logits, dim=-1).item()
 
-        # Ambil label dari config model
-        label = model.config.id2label.get(prediction_idx, "HOAX" if prediction_idx == 0 else "FAKTA")
-        
-        # Logika Penentuan
-        is_hoax = "HOAX" in label.upper()
-        
-        # Hitung probabilitas
-        hoax_prob = probs[0] * 100 if "HOAX" in model.config.id2label.get(0, "HOAX").upper() else probs[1] * 100
-        real_prob = 100 - hoax_prob
-        
-        risk_score = int(hoax_prob)
-        
+        # Ambil label (0 = HOAX, 1 = FAKTA)
+        # Hitung probabilitas hoaks (indeks 0) dan fakta (indeks 1)
+        if isinstance(probs, list) and len(probs) >= 2:
+            hoax_prob = probs[0] * 100
+            real_prob = probs[1] * 100
+        elif isinstance(probs, list) and len(probs) == 1:
+            hoax_prob = probs[0] * 100
+            real_prob = 100.0 - hoax_prob
+        else:
+            hoax_prob = 50.0
+            real_prob = 50.0
+
+        risk_score = int(round(hoax_prob))
+        is_hoax = risk_score >= 50
+
         # LOGIKA PENENTUAN STATUS
         if risk_score < 30:
             risk_level = 'AMAN'
