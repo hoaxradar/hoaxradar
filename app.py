@@ -8,6 +8,7 @@ import torch
 import torch.nn.functional as F
 from transformers import AutoConfig
 
+# Version: 1.0.2 - Live production release
 app = Flask(__name__)
 
 # Jalur file penyimpanan JSON
