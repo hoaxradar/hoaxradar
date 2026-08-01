@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tentang — HoaxRadar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="/" class="nav-brand">
+      <div class="brand-icon"><span class="radar-dot"></span></div>
+      <span class="brand-name">HOAX<span class="brand-accent">RADAR</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="/#detector" class="nav-link">Deteksi</a>
+      <a href="/#cara-kerja" class="nav-link">Cara Kerja</a>
+      <a href="/#tips" class="nav-link">Tips</a>
+      <a href="/about" class="nav-link active">Tentang</a>
+    </div>
+  </div>
+</nav>
+
+<section class="about-hero">
+  <div class="container">
+    <div class="section-eyebrow">Tentang Kami</div>
+    <h1 class="section-title">HoaxRadar — <span class="accent">Melawan Disinformasi</span></h1>
+    <p class="about-lead">Platform deteksi hoaks berbasis AI yang dibangun untuk membantu masyarakat Indonesia membedakan informasi benar dan salah.</p>
+  </div>
+</section>
+
+<section class="about-content">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-card">
+        <div class="about-icon">🎯</div>
+        <h3>Misi Kami</h3>
+        <p>Membantu masyarakat Indonesia dalam mengidentifikasi berita hoaks menggunakan teknologi Machine Learning dan Natural Language Processing (NLP) agar penyebaran disinformasi dapat diminimalisir.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">🤖</div>
+        <h3>Teknologi</h3>
+        <p>Menggunakan model Machine Learning yang dilatih dengan dataset berita Indonesia. Pipeline NLP melakukan preprocessing, feature extraction, dan klasifikasi teks secara otomatis.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">⚠️</div>
+        <h3>Disclaimer</h3>
+        <p>Hasil analisis bersifat prediktif berdasarkan pola teks. Selalu verifikasi informasi ke sumber terpercaya. AI bukan pengganti penilaian manusia dan fact-checker profesional.</p>
+      </div>
+    </div>
+
+    <div class="tech-stack">
+      <h3>Stack Teknologi</h3>
+      <div class="tech-tags">
+        <span class="tech-tag">Python</span>
+        <span class="tech-tag">Flask</span>
+        <span class="tech-tag">PyTorch</span>
+        <span class="tech-tag">Hugging Face Transformers</span>
+        <span class="tech-tag">IndoBERT</span>
+        <span class="tech-tag">NLP</span>
+        <span class="tech-tag">HTML/CSS/JS</span>
+      </div>
+    </div>
+
+    <div class="about-cta">
+      <a href="/" class="btn-analyze" style="display:inline-flex; text-decoration:none;">
+        <span class="btn-text">← Kembali & Coba Deteksi</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <p>© 2026 HoaxRadar. Dibuat Adian Adonis untuk melawan hoaks di Indonesia.</p>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

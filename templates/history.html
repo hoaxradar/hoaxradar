@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HoaxRadar — Sistem Deteksi Berita Hoaks</title>
+  <meta name="description" content="Deteksi berita hoaks dengan kecerdasan buatan. Verifikasi kebenaran informasi secara instan dan akurat." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+<!-- ═══ NAVBAR ═══════════════════════════════════════════════════════════════ -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="/" class="nav-brand">
+      <div class="brand-icon">
+        <span class="radar-dot"></span>
+      </div>
+      <span class="brand-name">HOAX<span class="brand-accent">RADAR</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#detector" class="nav-link">Deteksi</a>
+      <a href="#cara-kerja" class="nav-link">Cara Kerja</a>
+      <a href="#tips" class="nav-link">Tips</a>
+      <a href="/history" class="nav-link active">Riwayat</a>
+      <a href="/about" class="nav-link">Tentang</a>
+    </div>
+    <div class="nav-status">
+      {% if model_status == 'loaded' %}
+        <span class="status-badge status-online">
+          <span class="status-dot"></span> AI Aktif
+        </span>
+      {% else %}
+        <span class="status-badge status-offline">
+          <span class="status-dot"></span> Model Tidak Ada
+        </span>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ HERO ══════════════════════════════════════════════════════════════════ -->
+<section class="hero" id="home">
+  <div class="hero-bg">
+    <div class="grid-overlay"></div>
+    <div class="glow-orb glow-1"></div>
+    <div class="glow-orb glow-2"></div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="badge-pulse"></span>
+      Sistem Verifikasi Berita Berbasis AI
+    </div>
+
+    <h1 class="hero-title">
+      Deteksi <span class="title-highlight">Hoaks</span><br/>
+      Dalam Hitungan Detik
+    </h1>
+
+    <p class="hero-subtitle">
+      Teknologi Machine Learning kami menganalisis teks berita dan mengidentifikasi
+      potensi disinformasi dengan akurasi tinggi. Lindungi diri Anda dari hoaks.
+    </p>
+
+    <div class="hero-stats">
+      <div class="stat-item">
+        <span class="stat-value">AI</span>
+        <span class="stat-label">Powered</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">&lt;1s</span>
+        <span class="stat-label">Analisis</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">NLP</span>
+        <span class="stat-label">Teknologi</span>
+      </div>
+    </div>
+
+    <a href="#detector" class="hero-cta">
+      <span>Mulai Deteksi</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+    </a>
+  </div>
+
+  <div class="hero-visual">
+    <div class="radar-container">
+      <div class="radar-ring r1"></div>
+      <div class="radar-ring r2"></div>
+      <div class="radar-ring r3"></div>
+      <div class="radar-ring r4"></div>
+      <div class="radar-sweep"></div>
+      <div class="radar-center">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.5">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div class="radar-blip blip-1"></div>
+      <div class="radar-blip blip-2"></div>
+      <div class="radar-blip blip-3"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ MODEL WARNING ════════════════════════════════════════════════════════ -->
+{% if model_status == 'missing' %}
+<div class="model-warning">
+  <div class="warning-container">
+    <div class="warning-icon">⚠️</div>
+    <div class="warning-text">
+      <strong>Model AI Belum Tersedia</strong>
+      <span>Masukkan file <code>hoaxmodel</code> ke dalam folder <code>model/</code> lalu restart server.</span>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ═══ DETECTOR ══════════════════════════════════════════════════════════════ -->
+<section class="detector-section" id="detector">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">Mesin Analisis</div>
+      <h2 class="section-title">Verifikasi Berita <span class="accent">Sekarang</span></h2>
+      <p class="section-desc">Tempel atau ketik teks berita yang ingin Anda verifikasi di bawah ini</p>
+    </div>
+
+    <div class="detector-card">
+      <!-- Input Panel -->
+      <div class="input-panel">
+        <div class="input-header">
+          <div class="input-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Input Teks Berita
+          </div>
+          <div class="char-counter">
+            <span id="charCount">0</span> / 10.000
+          </div>
+        </div>
+
+        <textarea
+          id="newsInput"
+          class="news-textarea"
+          placeholder="Tempel teks berita, status media sosial, atau informasi yang ingin Anda verifikasi di sini...&#10;&#10;Contoh: 'Pemerintah telah memutuskan bahwa mulai besok semua warga harus...'"
+          maxlength="10000"
+        ></textarea>
+
+        <div class="input-footer">
+          <div class="example-chips">
+            <span class="chips-label">Contoh:</span>
+            <button class="chip" onclick="loadExample('hoax')">Berita Hoaks</button>
+            <button class="chip" onclick="loadExample('valid')">Berita Valid</button>
+          </div>
+          <div class="input-actions">
+            <button class="btn-clear" id="clearBtn" onclick="clearInput()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Hapus
+            </button>
+            <button class="btn-analyze" id="analyzeBtn" onclick="analyzeNews()">
+              <span class="btn-text">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Analisis Sekarang
+              </span>
+              <span class="btn-loading" style="display:none">
+                <span class="spinner"></span>
+                Menganalisis...
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Panel -->
+      <div class="result-panel" id="resultPanel">
+        <div class="result-placeholder" id="resultPlaceholder">
+          <div class="placeholder-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <p>Hasil analisis akan muncul di sini</p>
+          <span>Masukkan teks dan klik "Analisis Sekarang"</span>
+        </div>
+
+        <!-- Scanning Animation -->
+        <div class="scanning-overlay" id="scanningOverlay" style="display:none">
+          <div class="scan-line"></div>
+          <div class="scan-text">Menganalisis teks...</div>
+        </div>
+
+        <!-- Result Content -->
+        <div class="result-content" id="resultContent" style="display:none">
+
+          <!-- Verdict Banner -->
+          <div class="verdict-banner" id="verdictBanner">
+            <div class="verdict-icon" id="verdictIcon"></div>
+            <div class="verdict-info">
+              <div class="verdict-label">HASIL ANALISIS</div>
+              <div class="verdict-text" id="verdictText"></div>
+            </div>
+            <div class="verdict-badge" id="verdictBadge"></div>
+          </div>
+
+          <!-- Risk Gauge -->
+          <div class="risk-section">
+            <div class="risk-gauge-wrap">
+              <div class="risk-label-top">Tingkat Risiko Hoaks</div>
+              <div class="gauge-container">
+                <svg class="gauge-svg" viewBox="0 0 200 110">
+                  <defs>
+                    <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" style="stop-color:#00D4FF"/>
+                      <stop offset="50%" style="stop-color:#FFB300"/>
+                      <stop offset="100%" style="stop-color:#FF3B3B"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M 15 100 A 85 85 0 0 1 185 100" fill="none" stroke="#1a2035" stroke-width="16" stroke-linecap="round"/>
+                  <path id="gaugeArc" d="M 15 100 A 85 85 0 0 1 185 100" fill="none" stroke="url(#gaugeGrad)" stroke-width="16" stroke-linecap="round" stroke-dasharray="267" stroke-dashoffset="267"/>
+                  <text x="100" y="90" text-anchor="middle" class="gauge-value-text" id="gaugeValue">0%</text>
+                  <text x="100" y="108" text-anchor="middle" class="gauge-sub-text">Probabilitas Hoaks</text>
+                </svg>
+                <div class="gauge-labels">
+                  <span class="gauge-label-low">AMAN</span>
+                  <span class="gauge-label-high">HOAKS</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="risk-details">
+              <div class="prob-bars">
+                <div class="prob-row">
+                  <div class="prob-label">
+                    <span class="prob-dot dot-safe"></span>
+                    Kemungkinan Valid
+                  </div>
+                  <div class="prob-bar-wrap">
+                    <div class="prob-bar bar-safe" id="realBar"></div>
+                  </div>
+                  <span class="prob-value" id="realProb">0%</span>
+                </div>
+                <div class="prob-row">
+                  <div class="prob-label">
+                    <span class="prob-dot dot-danger"></span>
+                    Kemungkinan Hoaks
+                  </div>
+                  <div class="prob-bar-wrap">
+                    <div class="prob-bar bar-danger" id="hoaxBar"></div>
+                  </div>
+                  <span class="prob-value" id="hoaxProb">0%</span>
+                </div>
+              </div>
+
+              <div class="risk-level-box" id="riskLevelBox">
+                <div class="risk-level-label">Level Risiko</div>
+                <div class="risk-level-value" id="riskLevelText">-</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Indicators -->
+          <div class="indicators-section">
+            <div class="indicators-title">Indikator Analisis</div>
+            <div class="indicators-list" id="indicatorsList"></div>
+          </div>
+
+          <!-- Stats -->
+          <div class="stats-grid" id="statsGrid">
+            <div class="stat-box">
+              <div class="stat-box-value" id="statWords">-</div>
+              <div class="stat-box-label">Kata</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-box-value" id="statChars">-</div>
+              <div class="stat-box-label">Karakter</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-box-value" id="statSensational">-</div>
+              <div class="stat-box-label">Kata Sensasional</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-box-value" id="statConfidence">-</div>
+              <div class="stat-box-label">Kepercayaan AI</div>
+            </div>
+          </div>
+
+          <!-- Timestamp -->
+          <div class="result-timestamp" id="resultTimestamp"></div>
+
+          <!-- Action Buttons -->
+          <div class="result-actions">
+            <button class="btn-action" onclick="copyResult()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Salin Hasil
+            </button>
+            <button class="btn-action" onclick="analyzeNew()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.45"/></svg>
+              Analisis Baru
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CARA KERJA ════════════════════════════════════════════════════════════ -->
+<section class="how-section" id="cara-kerja">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">Teknologi</div>
+      <h2 class="section-title">Bagaimana <span class="accent">Cara Kerjanya</span></h2>
+    </div>
+
+    <div class="how-steps">
+      <div class="step-card">
+        <div class="step-number">01</div>
+        <div class="step-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <h3>Input Teks</h3>
+        <p>Masukkan teks berita, status media sosial, atau informasi yang ingin diverifikasi</p>
+      </div>
+
+      <div class="step-arrow">→</div>
+
+      <div class="step-card">
+        <div class="step-number">02</div>
+        <div class="step-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        </div>
+        <h3>Preprocessing</h3>
+        <p>Teks dibersihkan, dinormalisasi, dan diubah menjadi representasi numerik oleh NLP engine</p>
+      </div>
+
+      <div class="step-arrow">→</div>
+
+      <div class="step-card">
+        <div class="step-number">03</div>
+        <div class="step-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <h3>Analisis AI</h3>
+        <p>Model Machine Learning memproses fitur teks dan memprediksi probabilitas hoaks</p>
+      </div>
+
+      <div class="step-arrow">→</div>
+
+      <div class="step-card">
+        <div class="step-number">04</div>
+        <div class="step-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <h3>Hasil & Skor</h3>
+        <p>Dapatkan verdict, skor risiko, probabilitas, dan indikator analisis secara detail</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TIPS ══════════════════════════════════════════════════════════════════ -->
+<section class="tips-section" id="tips">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">Edukasi</div>
+      <h2 class="section-title">Kenali Ciri-ciri <span class="accent">Berita Hoaks</span></h2>
+    </div>
+
+    <div class="tips-grid">
+      <div class="tip-card tip-danger">
+        <div class="tip-icon">🔊</div>
+        <h3>Judul Provokatif</h3>
+        <p>Berita hoaks sering menggunakan judul yang melebih-lebihkan atau memancing emosi untuk mendapatkan perhatian</p>
+      </div>
+      <div class="tip-card tip-warning">
+        <div class="tip-icon">🔗</div>
+        <h3>Sumber Tidak Jelas</h3>
+        <p>Tidak menyebutkan sumber yang kredibel atau berasal dari website yang tidak dikenal</p>
+      </div>
+      <div class="tip-card tip-warning">
+        <div class="tip-icon">📅</div>
+        <h3>Tanggal Tidak Akurat</h3>
+        <p>Berita lama yang di-recycle atau informasi tanpa tanggal yang jelas untuk menyesatkan pembaca</p>
+      </div>
+      <div class="tip-card tip-info">
+        <div class="tip-icon">📸</div>
+        <h3>Foto Manipulatif</h3>
+        <p>Gambar yang diambil dari konteks berbeda atau hasil editan untuk mendukung narasi palsu</p>
+      </div>
+      <div class="tip-card tip-info">
+        <div class="tip-icon">😱</div>
+        <h3>Memancing Panik</h3>
+        <p>Konten yang dirancang untuk membuat pembaca takut, marah, atau bertindak impulsif</p>
+      </div>
+      <div class="tip-card tip-safe">
+        <div class="tip-icon">✅</div>
+        <h3>Selalu Verifikasi</h3>
+        <p>Cek kebenaran informasi di minimal 3 sumber terpercaya sebelum membagikan ke orang lain</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ════════════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <span class="brand-name">HOAX<span class="brand-accent">RADAR</span></span>
+        </div>
+        <p>Sistem deteksi berita hoaks berbasis kecerdasan buatan untuk membantu masyarakat melawan disinformasi.</p>
+      </div>
+      <div class="footer-links-col">
+        <h4>Navigasi</h4>
+        <a href="#detector">Deteksi Berita</a>
+        <a href="/history">Riwayat Analisis</a>
+        <a href="#cara-kerja">Cara Kerja</a>
+        <a href="#tips">Tips Anti Hoaks</a>
+        <a href="/about">Tentang Kami</a>
+      </div>
+      <div class="footer-links-col">
+        <h4>Sumber Terpercaya</h4>
+        <a href="https://turnbackhoax.id" target="_blank">Turn Back Hoax</a>
+        <a href="https://cekfakta.com" target="_blank">CekFakta</a>
+        <a href="https://kominfo.go.id" target="_blank">Kominfo</a>
+        <a href="https://medcom.id/cek-fakta" target="_blank">Medcom Cek Fakta</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 HoaxRadar. Dibuat untuk melawan disinformasi di Indonesia.</p>
+      <p class="footer-note">Hasil analisis AI bersifat prediktif. Selalu verifikasi ke sumber terpercaya.</p>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
