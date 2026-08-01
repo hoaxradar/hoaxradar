@@ -81,8 +81,8 @@ def load_model():
     try:
         download_model_if_needed()
         config = AutoConfig.from_pretrained(MODEL_PATH)
-        config.id2label = {0: "HOAX", 1: "FAKTA"}
-        config.label2id = {"HOAX": 0, "FAKTA": 1}
+        config.id2label = {0: "FAKTA", 1: "HOAX"}
+        config.label2id = {"FAKTA": 0, "HOAX": 1}
         tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         model = AutoModelForSequenceClassification.from_pretrained(
             MODEL_PATH, 
@@ -120,10 +120,10 @@ def analyze_text(text):
             probs = raw_probs.tolist() if raw_probs.ndim > 0 else [raw_probs.item()]
             prediction_idx = torch.argmax(outputs.logits, dim=-1).item()
 
-        # Ambil probabilitas dasar dari model ML (Index 0 = HOAX, Index 1 = FAKTA)
+        # Ambil probabilitas dasar dari model ML (Index 0 = FAKTA/VALID, Index 1 = HOAX)
         if isinstance(probs, list) and len(probs) >= 2:
-            hoax_prob = probs[0] * 100
-            real_prob = probs[1] * 100
+            real_prob = probs[0] * 100
+            hoax_prob = probs[1] * 100
         elif isinstance(probs, list) and len(probs) == 1:
             hoax_prob = probs[0] * 100
             real_prob = 100.0 - hoax_prob
