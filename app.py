@@ -190,12 +190,25 @@ def index():
     histories = read_from_json()
     return render_template('index.html', model_status=model_status, histories=histories)
 
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    return response
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
+    if not request.is_json:
+        return jsonify({'status': 'error', 'message': 'Format data tidak valid'}), 400
     data = request.get_json()
     text = data.get('text', '')
+    if not isinstance(text, str):
+        return jsonify({'status': 'error', 'message': 'Format teks harus berupa string'}), 400
     if len(text) < 10:
-        return jsonify({'status': 'error', 'message': 'Teks terlalu pendek'})
+        return jsonify({'status': 'error', 'message': 'Teks terlalu pendek (minimal 10 karakter)'})
+    if len(text) > 10000:
+        return jsonify({'status': 'error', 'message': 'Teks terlalu panjang (maksimal 10.000 karakter)'}), 400
     
     return jsonify(analyze_text(text))
 

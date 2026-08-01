@@ -197,13 +197,13 @@ function displayResult(data) {
     let borderHex = data.risk_color === 'danger' ? 'rgba(255,59,59,0.3)' : (data.risk_color === 'warning' ? 'rgba(255,179,0,0.3)' : 'rgba(0,212,255,0.3)');
 
     const origText = textarea?.value?.trim() || '';
-    const truncatedText = origText.substring(0, 75) + (origText.length > 75 ? '...' : '');
+    const safeText = escapeHTML(origText.substring(0, 75) + (origText.length > 75 ? '...' : ''));
     const wCount = s?.word_count ?? origText.split(/\s+/).filter(Boolean).length;
 
     const newRowHTML = `
       <tr style="border-bottom: 1px solid #1e2640; transition: background 0.2s; background: #1a233a;">
-        <td style="padding: 16px 20px; font-size: 13px; color: #64748b; font-family: 'JetBrains Mono', monospace;">${data.analyzed_at}</td>
-        <td style="padding: 16px 20px; font-size: 14px; color: #e2e8f0;">${truncatedText} <span style="color: #475569; font-size: 12px;">(${wCount} kata)</span></td>
+        <td style="padding: 16px 20px; font-size: 13px; color: #64748b; font-family: 'JetBrains Mono', monospace;">${escapeHTML(data.analyzed_at)}</td>
+        <td style="padding: 16px 20px; font-size: 14px; color: #e2e8f0;">${safeText} <span style="color: #475569; font-size: 12px;">(${wCount} kata)</span></td>
         <td style="padding: 16px 20px; font-weight: 700; font-size: 14px; color: ${colorHex};">${data.verdict}</td>
         <td style="padding: 16px 20px;">
           <span style="display: inline-block; padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 4px; background: ${bgHex}; color: ${colorHex}; border: 1px solid ${borderHex};">
@@ -356,6 +356,13 @@ document.addEventListener('keydown', (e) => {
 
 // ─── Utilities ────────────────────────────────────────────
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>'"]/g, 
+    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+  );
+}
 
 // Fungsi untuk menghapus baris riwayat
 async function deleteRow(button, timestamp) {
