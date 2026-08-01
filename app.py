@@ -49,13 +49,25 @@ def read_from_json():
 
 # ─── Load Model ─────────────────────────────────────────────────────────────
 MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model', 'hoaxmodel')
+MODEL_FILE = os.path.join(MODEL_PATH, 'model.safetensors')
+MODEL_URL = "https://media.githubusercontent.com/media/hoaxradar/hoaxradar/main/model/hoaxmodel/model.safetensors"
 
 model = None
 tokenizer = None  
 
+def download_model_if_needed():
+    os.makedirs(MODEL_PATH, exist_ok=True)
+    # Jika file tidak ada atau ukurannya < 1MB (artinya cuma file pointer LFS 134 byte)
+    if not os.path.exists(MODEL_FILE) or os.path.getsize(MODEL_FILE) < 1000000:
+        print("[INFO] Memulai unduh model.safetensors (498MB) dari server...")
+        import urllib.request
+        urllib.request.urlretrieve(MODEL_URL, MODEL_FILE)
+        print("[OK] Unduh file model selesai!")
+
 def load_model():
     global model, tokenizer
     try:
+        download_model_if_needed()
         config = AutoConfig.from_pretrained(MODEL_PATH)
         tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH, config=config)
