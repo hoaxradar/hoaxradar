@@ -88,8 +88,6 @@ async function analyzeNews() {
       return;
     }
 
-    // Slight delay for dramatic effect
-    await delay(800);
     displayResult(data);
 
   } catch (err) {

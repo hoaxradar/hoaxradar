@@ -101,10 +101,11 @@ def analyze_text(text):
         return {'status': 'error', 'message': 'Model tidak dimuat'}
 
     try:
-        # Tokenisasi
-        inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=256)
-        
-        with torch.no_grad():
+        # Konfigurasi thread CPU untuk kecepatan maksimal
+        if hasattr(torch, 'set_num_threads'):
+            torch.set_num_threads(max(1, os.cpu_count() or 2))
+
+        with torch.inference_mode():
             outputs = model(**inputs)
             probs = F.softmax(outputs.logits, dim=-1).squeeze().tolist()
             prediction_idx = torch.argmax(outputs.logits, dim=-1).item()
