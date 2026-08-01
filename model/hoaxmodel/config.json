@@ -2,12 +2,12 @@
   "_name_or_path": "indobenchmark/indobert-base-p1",
   "_num_labels": 2,
   "id2label": {
-    "0": "FAKTA",
-    "1": "HOAX"
+    "0": "HOAX",
+    "1": "FAKTA"
   },
   "label2id": {
-    "FAKTA": 0,
-    "HOAX": 1
+    "HOAX": 0,
+    "FAKTA": 1
   },
   "architectures": [
     "BertForSequenceClassification"
