@@ -61,8 +61,19 @@ def download_model_if_needed():
     if not os.path.exists(MODEL_FILE) or os.path.getsize(MODEL_FILE) < 1000000:
         print("[INFO] Memulai unduh model.safetensors (498MB) dari server...")
         import urllib.request
-        urllib.request.urlretrieve(MODEL_URL, MODEL_FILE)
-        print("[OK] Unduh file model selesai!")
+        try:
+            req = urllib.request.Request(MODEL_URL, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req) as response, open(MODEL_FILE, 'wb') as out_file:
+                import shutil
+                shutil.copyfileobj(response, out_file)
+            print("[OK] Unduh file model selesai!")
+        except Exception as e:
+            print(f"[ERROR] Gagal mengunduh model: {e}")
+            if os.path.exists(MODEL_FILE) and os.path.getsize(MODEL_FILE) < 1000000:
+                try:
+                    os.remove(MODEL_FILE)
+                except Exception:
+                    pass
 
 def load_model():
     global model, tokenizer
@@ -70,11 +81,17 @@ def load_model():
         download_model_if_needed()
         config = AutoConfig.from_pretrained(MODEL_PATH)
         tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-        model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH, config=config)
+        model = AutoModelForSequenceClassification.from_pretrained(
+            MODEL_PATH, 
+            config=config,
+            low_cpu_mem_usage=True
+        )
         model.eval()
         print("[OK] Model IndoBERT berhasil dimuat dengan konfigurasi yang benar!")
     except Exception as e:
+        import traceback
         print(f"[ERROR] Error memuat model: {e}")
+        traceback.print_exc()
 
 load_model()
 
