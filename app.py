@@ -103,6 +103,9 @@ def analyze_text(text):
     if model is None or tokenizer is None:
         return {'status': 'error', 'message': 'Model tidak dimuat'}
 
+    hoax_prob = 50.0
+    real_prob = 50.0
+
     try:
         # Konfigurasi thread CPU untuk kecepatan maksimal
         if hasattr(torch, 'set_num_threads'):
