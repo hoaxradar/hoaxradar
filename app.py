@@ -81,8 +81,6 @@ def load_model():
     try:
         download_model_if_needed()
         config = AutoConfig.from_pretrained(MODEL_PATH)
-        config.id2label = {0: "HOAX", 1: "FAKTA"}
-        config.label2id = {"HOAX": 0, "FAKTA": 1}
         tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         model = AutoModelForSequenceClassification.from_pretrained(
             MODEL_PATH, 
@@ -103,15 +101,10 @@ def analyze_text(text):
     if model is None or tokenizer is None:
         return {'status': 'error', 'message': 'Model tidak dimuat'}
 
-    hoax_prob = 50.0
-    real_prob = 50.0
-
     try:
-        # Konfigurasi thread CPU untuk kecepatan maksimal
         if hasattr(torch, 'set_num_threads'):
             torch.set_num_threads(max(1, os.cpu_count() or 2))
 
-        # Tokenisasi
         inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=256)
 
         with torch.inference_mode():
@@ -120,60 +113,24 @@ def analyze_text(text):
             probs = raw_probs.tolist() if raw_probs.ndim > 0 else [raw_probs.item()]
             prediction_idx = torch.argmax(outputs.logits, dim=-1).item()
 
-        # Ambil probabilitas dasar dari model ML (Index 0 = HOAX, Index 1 = FAKTA/VALID)
+        # Ambil label dari model
+        label = model.config.id2label.get(prediction_idx, "HOAX" if prediction_idx == 0 else "FAKTA")
+        is_hoax = "HOAX" in str(label).upper() or prediction_idx == 0
+
+        # Hitung probabilitas berdasarkan hasil prediksi
         if isinstance(probs, list) and len(probs) >= 2:
-            hoax_prob = probs[0] * 100
-            real_prob = probs[1] * 100
-        elif isinstance(probs, list) and len(probs) == 1:
-            hoax_prob = probs[0] * 100
-            real_prob = 100.0 - hoax_prob
+            hoax_prob = probs[0] * 100 if "HOAX" in str(model.config.id2label.get(0, "HOAX")).upper() else probs[1] * 100
         else:
-            hoax_prob = 50.0
-            real_prob = 50.0
+            hoax_prob = probs[0] * 100 if is_hoax else 0.0
 
-        # ─── HYBRID AI ENGINE: Heuristic Rules + Machine Learning ───
-        indicators = []
-        heuristic_risk_bonus = 0
-
-        # Rule 1: Kata Sensasional & Tanda Seru
-        sensational_matches = re.findall(r'(!|\bWAJIB\b|\bVIRAL\b|\bGAWAT\b|\bBONGKAR\b|\bHOAKS\b|\bHEBOH\b|\bGEMPAR\b|\bGEMPARKAN\b)', text.upper())
-        sensational_count = len(sensational_matches)
-        if sensational_count > 0:
-            heuristic_risk_bonus += min(sensational_count * 15, 45)
-            indicators.append({'type': 'warning', 'text': f'Terdeteksi {sensational_count} kata sensasional/provokatif (HEBOH/GAWAT/!)'})
-
-        # Rule 2: Ajakan Pesan Berantai & Media Sosial
-        chain_matches = re.findall(r'(\bBAGIKAN\b|\bBAGIKANNYA\b|\bSEBARKAN\b|\bWHATSAPP\b|\bGRUP WA\b|\bGROUP WA\b|\bBERANTAI\b|\bSEBELUM DIHAPUS\b|\bVIRALKAN\b)', text.upper())
-        if chain_matches:
-            heuristic_risk_bonus += 35
-            indicators.append({'type': 'warning', 'text': 'Terdeteksi klausa ajakan menyebarkan pesan berantai (WhatsApp / Media Sosial)'})
-
-        # Rule 3: Klaim Absurd & Fiktif
-        absurd_matches = re.findall(r'(\bDINOSAURUS\b|\bNAGA\b|\bALIEN\b|\bUFO\b|\bFIKTIF\b|\b5G\b|\bBUMI DATAR\b|\bPSEUDOSAINS\b|\bGORONG-GORONG RAKSASA\b)', text.upper())
-        if absurd_matches:
-            heuristic_risk_bonus += 50
-            matched_words = ", ".join(list(set(absurd_matches)))
-            indicators.append({'type': 'warning', 'text': f'Terdeteksi kata klaim fiktif/absurd: {matched_words}'})
-
-        # Rule 4: Elemen Jurnalistik Formil
-        if re.search(r'\b(JAKARTA|SURABAYA|BANDUNG|MEDAN|SEMARANG|MAKASSAR|Pemerintah|Dinas|Kementerian|Kepolisian|Wakapol|Polri|Presiden|Gubernur)\b', text):
-            indicators.append({'type': 'info', 'text': 'Struktur penulisan menggunakan format/gaya jurnalistik'})
-
-        # Kombinasikan Skor Model ML + Heuristic Risk Bonus
-        if heuristic_risk_bonus > 0:
-            hoax_prob = min(99.9, hoax_prob + heuristic_risk_bonus)
-            real_prob = max(0.1, 100.0 - hoax_prob)
-
+        real_prob = max(0.0, 100.0 - hoax_prob)
         risk_score = int(round(hoax_prob))
-        is_hoax = risk_score >= 50
 
         # LOGIKA PENENTUAN STATUS
         if risk_score < 30:
             risk_level = 'AMAN'
             risk_color = 'safe'
             verdict = 'VALID'
-            if not indicators:
-                indicators.append({'type': 'safe', 'text': 'Tidak ditemukan indikator disinformasi pada teks'})
         elif risk_score < 70:
             risk_level = 'PERLU DIPERIKSA'
             risk_color = 'warning'
@@ -183,10 +140,10 @@ def analyze_text(text):
             risk_color = 'danger'
             verdict = 'HOAKS'
 
-        # Ekstrak metrik tambahan untuk memperkaya riwayat
         word_count = len(text.split())
         char_count = len(text)
         confidence_score = round(max(hoax_prob, real_prob), 1)
+        sensational_count = len(re.findall(r'(!|\bWAJIB\b|\bVIRAL\b|\bGAWAT\b|\bBONGKAR\b|\bHOAKS\b)', text.upper()))
 
         result = {
             'status': 'success',
@@ -197,7 +154,6 @@ def analyze_text(text):
             'risk_color': risk_color,
             'hoax_probability': round(hoax_prob, 1),
             'real_probability': round(real_prob, 1),
-            'indicators': indicators,
             'analyzed_at': datetime.now().strftime('%d %B %Y, %H:%M WIB'),
             'stats': {
                 'word_count': word_count,
@@ -206,7 +162,6 @@ def analyze_text(text):
                 'confidence': confidence_score
             }
         }
-
 
         # --- SIMPAN DATA KE RIWAYAT JSON ---
         history_entry = {
