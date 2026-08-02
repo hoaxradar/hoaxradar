@@ -111,20 +111,17 @@ def analyze_text(text):
             outputs = model(**inputs)
             raw_probs = F.softmax(outputs.logits, dim=-1).squeeze()
             probs = raw_probs.tolist() if raw_probs.ndim > 0 else [raw_probs.item()]
-            prediction_idx = torch.argmax(outputs.logits, dim=-1).item()
 
-        # Ambil label dari model
-        label = model.config.id2label.get(prediction_idx, "HOAX" if prediction_idx == 0 else "FAKTA")
-        is_hoax = "HOAX" in str(label).upper() or prediction_idx == 0
-
-        # Hitung probabilitas berdasarkan hasil prediksi
+        # Model IndoBERT: Indeks 0 = Probabilitas Hoaks, Indeks 1 = Probabilitas Fakta
         if isinstance(probs, list) and len(probs) >= 2:
-            hoax_prob = probs[0] * 100 if "HOAX" in str(model.config.id2label.get(0, "HOAX")).upper() else probs[1] * 100
+            hoax_prob = probs[0] * 100
+            real_prob = probs[1] * 100
         else:
-            hoax_prob = probs[0] * 100 if is_hoax else 0.0
+            hoax_prob = probs[0] * 100
+            real_prob = 100.0 - hoax_prob
 
-        real_prob = max(0.0, 100.0 - hoax_prob)
         risk_score = int(round(hoax_prob))
+        is_hoax = (risk_score >= 50)
 
         # LOGIKA PENENTUAN STATUS
         if risk_score < 30:
