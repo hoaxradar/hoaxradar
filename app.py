@@ -112,13 +112,13 @@ def analyze_text(text):
             raw_probs = F.softmax(outputs.logits, dim=-1).squeeze()
             probs = raw_probs.tolist() if raw_probs.ndim > 0 else [raw_probs.item()]
 
-        # Model IndoBERT: Indeks 0 = Probabilitas Hoaks, Indeks 1 = Probabilitas Fakta
+        # Model IndoBERT: Indeks 0 = Probabilitas Fakta/Valid, Indeks 1 = Probabilitas Hoaks
         if isinstance(probs, list) and len(probs) >= 2:
-            hoax_prob = probs[0] * 100
-            real_prob = probs[1] * 100
+            real_prob = probs[0] * 100
+            hoax_prob = probs[1] * 100
         else:
-            hoax_prob = probs[0] * 100
-            real_prob = 100.0 - hoax_prob
+            real_prob = probs[0] * 100
+            hoax_prob = 100.0 - real_prob
 
         risk_score = int(round(hoax_prob))
         is_hoax = (risk_score >= 50)
